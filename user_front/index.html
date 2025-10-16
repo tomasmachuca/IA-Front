@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Recomendador de Restaurantes</title>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+  <header>
+    <h1>🍽️ Recomendador de Restaurantes</h1>
+    <p>Completá tus preferencias y te sugerimos el mejor lugar.</p>
+  </header>
+
+  <main>
+    <section class="card">
+      <h2>Tus preferencias</h2>
+      <div class="grid">
+        <label>Presupuesto por persona (ARS)
+          <input id="presupuesto" type="number" min="0" step="1">
+        </label>
+        <label>Tiempo máximo hasta el lugar (min)
+          <input id="tmax" type="number" min="1" step="1">
+        </label>
+        <label>Gustos (separados por espacio)
+          <input id="gustos" type="text" placeholder="ej: italiana pizza">
+        </label>
+        <label>Restricciones (ej: sin_tacc vegano)
+          <input id="restricciones" type="text" placeholder="">
+        </label>
+      </div>
+
+      <details>
+        <summary>Pesos avanzados (opcional)</summary>
+        <div class="grid">
+          <label>✔︎ Importancia de la Afinidad
+            <input id="wg" type="number" min="0" max="1" step="0.05">
+          </label>
+          <label>$ Importancia del Precio
+            <input id="wp" type="number" min="0" max="1" step="0.05">
+          </label>
+          <label>📍 Importancia de la Cercanía
+            <input id="wd" type="number" min="0" max="1" step="0.05">
+          </label>
+          <label>⭐ Importancia de la Calidad
+            <input id="wq" type="number" min="0" max="1" step="0.05">
+          </label>
+          <label>⏱ Importancia de la Disponibilidad
+            <input id="wa" type="number" min="0" max="1" step="0.05">
+          </label>
+        </div>
+        <p class="hint">Sugerencia: que sumen ≈ 1.0</p>
+        <p class="hint">Los valores representan el porcentaje de importancia (ej: 0.5 = 50%)</p>
+      </details>
+    </section>
+
+    <section class="card">
+      <h2>Contexto</h2>
+      <div class="grid">
+        <label>Clima
+          <select id="clima">
+            <option value="" selected disabled hidden>Selecciona una opción</option>
+            <option value="templado">templado</option>
+            <option value="lluvia">lluvia</option>
+            <option value="frio">frio</option>
+            <option value="calor">calor</option>
+          </select>
+        </label>
+        <label>Franja
+          <select id="franja">
+            <option value="" selected disabled hidden>Selecciona una opción</option>
+            <option>cena</option>
+            <option>almuerzo</option>
+            <option>desayuno</option>
+            <option>merienda</option>
+            <option>madrugada</option>
+          </select>
+        </label>
+        <label>Grupo
+          <select id="grupo">
+            <option value="" selected disabled hidden>Selecciona una opción</option>
+            <option>pareja</option>
+            <option>amigos</option>
+            <option>familia</option>
+            <option>solo</option>
+          </select>
+        </label>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="row">
+        <button class="primary" id="btnRecomendar">Obtener recomendación</button>
+      </div>
+    </section>
+
+    <section id="resultado" class="card hidden">
+      <h2>Resultado</h2>
+      <div id="top"></div>
+      <h3>Alternativas</h3>
+      <div id="lista"></div>
+      <div class="row">
+        <button id="btnCopiar">Copiar explicación</button>
+        <button id="btnDescargar">Descargar JSON</button>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <small>Demo académico — Sistema Experto en CLIPS</small>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Admin - Recomendador de Restaurantes</title>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+  <header>
+    <h1>⚙️ Administración de Restaurantes</h1>
+  </header>
+
+  <main>
+    <section class="card">
+      <h2>Restaurantes</h2>
+      <p>Pegá un JSON con la lista de restaurantes.</p>
+      <textarea id="restaurantes" rows="10">[
+  {"id":"r1","nombre":"Trattoria X","cocinas":["italiana"],"precio_pp":17000,"rating":4.6,"n_resenas":220,"atributos":[],"reserva":"si","tiempo_min":6,"abierto":"si"},
+  {"id":"r2","nombre":"Bistró Y","cocinas":["italiana","fusion"],"precio_pp":19000,"rating":4.4,"n_resenas":120,"atributos":["sin_tacc"],"reserva":"si","tiempo_min":9,"abierto":"si"},
+  {"id":"r3","nombre":"Cantina Z","cocinas":["pizza"],"precio_pp":12000,"rating":4.2,"n_resenas":80,"atributos":[],"reserva":"no","tiempo_min":12,"abierto":"si"}
+]</textarea>
+      <div class="row">
+        <button id="btnEjemplo">Ejemplo</button>
+        <button id="btnLimpiar">Limpiar</button>
+      </div>
+    </section>
+
+    <section id="output" class="card hidden">
+      <h2>Estado</h2>
+      <pre id="status"></pre>
+    </section>
+  </main>
+
+  <script src="admin.js"></script>
+</body>
+</html>
