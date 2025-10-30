@@ -28,29 +28,72 @@
         <label>Restricciones (ej: sin_tacc vegano)
           <input id="restricciones" type="text" placeholder="">
         </label>
+        <label class="full-width">📍 Dirección (opcional)
+          <div style="display: flex; gap: 8px; margin-top: 4px;">
+            <input id="direccion" type="text" placeholder="ej: Av. Corrientes 1234, CABA" style="flex: 1;">
+            <button type="button" id="btnUbicacionAuto" style="padding: 8px 16px; white-space: nowrap;">📍 Usar mi ubicación</button>
+          </div>
+          <small id="statusUbicacion" style="display: block; margin-top: 4px; color: #666; font-size: 0.85em;"></small>
+          <input type="hidden" id="latitud">
+          <input type="hidden" id="longitud">
+        </label>
       </div>
 
       <details>
         <summary>Pesos avanzados (opcional)</summary>
         <div class="grid">
           <label>✔︎ Importancia de la Afinidad
-            <input id="wg" type="number" min="0" max="1" step="0.05">
+            <div class="stars-container" data-weight="wg">
+              <span class="star" data-value="0.2">⭐</span>
+              <span class="star" data-value="0.4">⭐</span>
+              <span class="star" data-value="0.6">⭐</span>
+              <span class="star" data-value="0.8">⭐</span>
+              <span class="star" data-value="1.0">⭐</span>
+            </div>
+            <input type="hidden" id="wg" value="0.35">
           </label>
           <label>$ Importancia del Precio
-            <input id="wp" type="number" min="0" max="1" step="0.05">
+            <div class="stars-container" data-weight="wp">
+              <span class="star" data-value="0.2">⭐</span>
+              <span class="star" data-value="0.4">⭐</span>
+              <span class="star" data-value="0.6">⭐</span>
+              <span class="star" data-value="0.8">⭐</span>
+              <span class="star" data-value="1.0">⭐</span>
+            </div>
+            <input type="hidden" id="wp" value="0.20">
           </label>
           <label>📍 Importancia de la Cercanía
-            <input id="wd" type="number" min="0" max="1" step="0.05">
+            <div class="stars-container" data-weight="wd">
+              <span class="star" data-value="0.2">⭐</span>
+              <span class="star" data-value="0.4">⭐</span>
+              <span class="star" data-value="0.6">⭐</span>
+              <span class="star" data-value="0.8">⭐</span>
+              <span class="star" data-value="1.0">⭐</span>
+            </div>
+            <input type="hidden" id="wd" value="0.25">
           </label>
           <label>⭐ Importancia de la Calidad
-            <input id="wq" type="number" min="0" max="1" step="0.05">
+            <div class="stars-container" data-weight="wq">
+              <span class="star" data-value="0.2">⭐</span>
+              <span class="star" data-value="0.4">⭐</span>
+              <span class="star" data-value="0.6">⭐</span>
+              <span class="star" data-value="0.8">⭐</span>
+              <span class="star" data-value="1.0">⭐</span>
+            </div>
+            <input type="hidden" id="wq" value="0.15">
           </label>
           <label>⏱ Importancia de la Disponibilidad
-            <input id="wa" type="number" min="0" max="1" step="0.05">
+            <div class="stars-container" data-weight="wa">
+              <span class="star" data-value="0.2">⭐</span>
+              <span class="star" data-value="0.4">⭐</span>
+              <span class="star" data-value="0.6">⭐</span>
+              <span class="star" data-value="0.8">⭐</span>
+              <span class="star" data-value="1.0">⭐</span>
+            </div>
+            <input type="hidden" id="wa" value="0.05">
           </label>
         </div>
-        <p class="hint">Sugerencia: que sumen ≈ 1.0</p>
-        <p class="hint">Los valores representan el porcentaje de importancia (ej: 0.5 = 50%)</p>
+        <p class="hint">Hacé clic en las estrellas para ajustar la importancia. El sistema normalizará automáticamente los valores.</p>
       </details>
     </section>
 

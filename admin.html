@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Admin - Recomendador de Restaurantes</title>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+  <header>
+    <h1>⚙️ Administración de Restaurantes</h1>
+  </header>
+
+  <main>
+    <section class="card">
+      <h2>Restaurantes</h2>
+      <p>Pegá un JSON con la lista de restaurantes. <strong>Importante:</strong> No incluir <code>tiempo_min</code>, se calcula automáticamente basado en la dirección del usuario.</p>
+      <textarea id="restaurantes" rows="12" placeholder='Los restaurantes se cargan automáticamente desde el backend. Usá el botón "Cargar desde backend" si necesitás refrescarlos.'></textarea>
+      <div class="row">
+        <button id="btnCargar">Cargar desde backend</button>
+        <button id="btnGuardar" class="primary">Guardar en backend</button>
+        <button id="btnEjemplo">Ver ejemplo</button>
+        <button id="btnLimpiar">Limpiar</button>
+      </div>
+    </section>
+
+    <section id="output" class="card hidden">
+      <h2>Estado</h2>
+      <pre id="status"></pre>
+    </section>
+  </main>
+
+  <script src="admin.js"></script>
+</body>
+</html>

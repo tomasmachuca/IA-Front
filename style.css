@@ -18,3 +18,11 @@ button:hover{filter:brightness(.97)}
 .result{display:flex;flex-direction:column;gap:6px}
 .cardAlt{border:1px dashed #ddd;border-radius:12px;padding:10px;margin:10px 0}
 footer{padding:24px;text-align:center;opacity:.7}
+.full-width{grid-column:1/-1}
+#btnUbicacionAuto{width:auto;background:#1976d2;color:#fff;border-color:#1976d2;padding:8px 16px;white-space:nowrap}
+#btnUbicacionAuto:hover{background:#1565c0;filter:brightness(1)}
+#statusUbicacion{display:block;margin-top:4px;color:#666;font-size:0.85em;min-height:1.2em}
+.stars-container{display:flex;gap:6px;margin-top:8px}
+.stars-container .star{font-size:28px;color:#ddd;transition:all 0.2s;user-select:none;cursor:pointer;display:inline-block;line-height:1;padding:2px}
+.stars-container .star:hover{transform:scale(1.2);color:#ffd700}
+.stars-container .star.active{color:#ffc107;filter:drop-shadow(0 0 3px rgba(255,193,7,0.7))}
