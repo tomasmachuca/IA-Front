@@ -1,0 +1,24 @@
+{
+  "name": "ia-front",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "live-server user_front"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tomasmachuca/IA-Front.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/tomasmachuca/IA-Front/issues"
+  },
+  "homepage": "https://github.com/tomasmachuca/IA-Front#readme",
+  "description": "",
+  "devDependencies": {
+    "live-server": "^1.2.2"
+  }
+}

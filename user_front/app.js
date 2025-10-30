@@ -11,6 +11,13 @@ async function recomendar(){
   const clima = document.getElementById('clima').value
   const franja = document.getElementById('franja').value
   const grupo = document.getElementById('grupo').value
+  const transporte = document.getElementById('transporte')?.value || ''
+  const discapacidadSel = document.getElementById('discapacidad')
+  const discapacidad = discapacidadSel && discapacidadSel.value || ''
+  const movilidadSel = document.getElementById('movilidad')
+  const puedeAutonomo = movilidadSel && movilidadSel.value || ''
+  const direccion = (document.getElementById('direccion')?.value || '').trim()
+  const coords = window.__coords || null
 
   let restaurantes = [
   {"id":"r1","nombre":"Trattoria X","cocinas":["italiana"],"precio_pp":17000,"rating":4.6,"n_resenas":220,"atributos":[],"reserva":"si","tiempo_min":6,"abierto":"si"},
@@ -31,12 +38,14 @@ async function recomendar(){
       picante: "bajo",
       presupuesto,
       tiempo_max: tmax,
-      movilidad: "a_pie",
+      movilidad: transporte || "a_pie",
+      discapacidad: discapacidad === 'si' ? 'si' : 'no',
+      puede_autonomo: discapacidad === 'si' ? (puedeAutonomo || 'no_definido') : 'no_aplica',
       restricciones,
       diversidad: "media",
       wg,wp,wd,wq,wa
     },
-    contexto: { clima, dia:"viernes", franja, grupo },
+    contexto: { clima, dia:"viernes", franja, grupo, direccion, coords, transporte },
     restaurantes
   }
 
@@ -109,6 +118,77 @@ function escapeHtml(s){
 }
 
 document.getElementById('btnRecomendar').onclick = recomendar
+
+// Mostrar/ocultar la pregunta de movilidad cuando hay discapacidad
+const discapacidadEl = document.getElementById('discapacidad')
+const movilidadWrap = document.getElementById('movilidadWrap')
+if(discapacidadEl && movilidadWrap){
+  discapacidadEl.addEventListener('change', ()=>{
+    if(discapacidadEl.value === 'si'){
+      movilidadWrap.classList.remove('hidden')
+    }else{
+      movilidadWrap.classList.add('hidden')
+      const movSel = document.getElementById('movilidad')
+      if(movSel) movSel.value = ''
+    }
+  })
+}
+
+// Geolocalización simple: guarda coords y rellena el campo dirección con lat,lon
+const btnGeo = document.getElementById('btnGeo')
+if(btnGeo){
+  btnGeo.addEventListener('click', ()=>{
+    if(!('geolocation' in navigator)){
+      alert('Tu navegador no soporta geolocalización')
+      return
+    }
+    btnGeo.disabled = true
+    btnGeo.textContent = 'Obteniendo...'
+    navigator.geolocation.getCurrentPosition(pos=>{
+      const {latitude, longitude} = pos.coords
+      window.__coords = {lat: latitude, lon: longitude}
+      const dir = document.getElementById('direccion')
+      if(dir) dir.value = `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`
+      btnGeo.textContent = 'Ubicación detectada'
+      btnGeo.disabled = false
+    }, err=>{
+      alert('No se pudo obtener la ubicación: '+ err.message)
+      btnGeo.textContent = 'Obtener automáticamente'
+      btnGeo.disabled = false
+    }, {enableHighAccuracy:true, timeout:10000})
+  })
+}
+
+// Presets rápidos para pesos según preferencia
+const pills = document.getElementById('preferenciaPills')
+if(pills){
+  pills.addEventListener('click', (e)=>{
+    const btn = e.target.closest('button.pill')
+    if(!btn) return
+    [...pills.querySelectorAll('.pill')].forEach(b=>b.classList.remove('selected'))
+    btn.classList.add('selected')
+    const preset = btn.getAttribute('data-preset')
+    const wgEl = document.getElementById('wg')
+    const wpEl = document.getElementById('wp')
+    const wdEl = document.getElementById('wd')
+    const wqEl = document.getElementById('wq')
+    const waEl = document.getElementById('wa')
+    const sets = {
+      equilibrado: {wg:0.35, wp:0.20, wd:0.25, wq:0.15, wa:0.05},
+      cercania:    {wg:0.25, wp:0.15, wd:0.45, wq:0.10, wa:0.05},
+      afinidad:    {wg:0.55, wp:0.10, wd:0.15, wq:0.15, wa:0.05},
+      precio:      {wg:0.20, wp:0.45, wd:0.15, wq:0.15, wa:0.05},
+      calidad:     {wg:0.25, wp:0.10, wd:0.15, wq:0.45, wa:0.05},
+      disponibilidad:{wg:0.25, wp:0.10, wd:0.15, wq:0.10, wa:0.40}
+    }
+    const s = sets[preset] || sets.equilibrado
+    wgEl.value = s.wg
+    wpEl.value = s.wp
+    wdEl.value = s.wd
+    wqEl.value = s.wq
+    waEl.value = s.wa
+  })
+}
 
 document.getElementById('btnCopiar').onclick = async ()=>{
   const recs = window.__last || []

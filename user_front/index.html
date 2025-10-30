@@ -13,6 +13,19 @@
   </header>
 
   <main>
+    <section class="card hero">
+      <h2>¿Qué te importa más para elegir?</h2>
+      <div class="pills" id="preferenciaPills">
+        <button type="button" data-preset="equilibrado" class="pill selected">Equilibrado</button>
+        <button type="button" data-preset="cercania" class="pill">Cercanía</button>
+        <button type="button" data-preset="afinidad" class="pill">Tipo de comida</button>
+        <button type="button" data-preset="precio" class="pill">Precio</button>
+        <button type="button" data-preset="calidad" class="pill">Calidad</button>
+        <button type="button" data-preset="disponibilidad" class="pill">Disponibilidad</button>
+      </div>
+      <p class="hint">Podés ajustar los pesos finos más abajo si querés.</p>
+    </section>
+
     <section class="card">
       <h2>Tus preferencias</h2>
       <div class="grid">
@@ -76,6 +89,28 @@
             <option>madrugada</option>
           </select>
         </label>
+        <label>¿Tiene discapacidad?
+          <select id="discapacidad">
+            <option value="" selected disabled hidden>Selecciona una opción</option>
+            <option value="no">no</option>
+            <option value="si">sí</option>
+          </select>
+        </label>
+        <label id="movilidadWrap" class="hidden">¿Puede llegar por sus propios medios?
+          <select id="movilidad">
+            <option value="" selected disabled hidden>Selecciona una opción</option>
+            <option value="si">sí</option>
+            <option value="no">no</option>
+          </select>
+        </label>
+        <div>
+          <label>Dirección
+            <input id="direccion" type="text" placeholder="Ingresa tu dirección o usa geolocalización">
+          </label>
+          <div class="row">
+            <button type="button" id="btnGeo">Obtener automáticamente</button>
+          </div>
+        </div>
         <label>Grupo
           <select id="grupo">
             <option value="" selected disabled hidden>Selecciona una opción</option>
@@ -83,6 +118,18 @@
             <option>amigos</option>
             <option>familia</option>
             <option>solo</option>
+          </select>
+        </label>
+        <label>Transporte
+          <select id="transporte">
+            <option value="" selected disabled hidden>Selecciona una opción</option>
+            <option value="a_pie">a pie</option>
+            <option value="auto">auto</option>
+            <option value="publico">transporte público</option>
+            <option value="taxi">taxi / remis</option>
+            <option value="bicicleta">bicicleta</option>
+            <option value="moto">moto</option>
+            <option value="asistido">asistido</option>
           </select>
         </label>
       </div>

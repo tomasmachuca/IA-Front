@@ -3,14 +3,16 @@ body{margin:0;background:#fafafa;color:#222;font:16px/1.5 system-ui,Segoe UI,Rob
 header{padding:24px 16px;text-align:center;background:linear-gradient(180deg,#fff, #f5f7ff)}
 h1{margin:0 0 6px 0;font-size:28px}
 main{max-width:1000px;margin:0 auto;padding:16px}
-.card{background:#fff;border:1px solid #e8e8e8;border-radius:16px;padding:16px;margin:14px 0;box-shadow:0 2px 10px rgba(0,0,0,.04)}
+.card{background:#fff;border:1px solid #e8e8e8;border-radius:16px;padding:16px;margin:14px 0;box-shadow:0 6px 24px rgba(0,0,0,.06)}
+.hero{border-left:6px solid #2b67f6}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
 .row{display:flex;gap:10px;flex-wrap:wrap}
 label{display:block;font-weight:600}
-input,select,textarea,button{width:100%;padding:10px;border-radius:10px;border:1px solid #d0d0d0;font-size:14px}
+input,select,textarea,button{width:100%;padding:12px;border-radius:12px;border:1px solid #d0d0d0;font-size:14px;background:#fff}
+input:focus,select:focus,textarea:focus{outline:none;border-color:#2b67f6;box-shadow:0 0 0 3px rgba(43,103,246,.15)}
 textarea{min-height:120px;font-family:ui-monospace,Consolas,monospace}
-button{cursor:pointer;background:#fff}
-button.primary{background:#2b67f6;border-color:#2b67f6;color:#fff}
+button{cursor:pointer}
+button.primary{background:#2b67f6;border-color:#2b67f6;color:#fff;font-weight:700}
 button:hover{filter:brightness(.97)}
 .hint{opacity:.7;font-size:13px;margin-top:6px}
 .hidden{display:none}
@@ -18,3 +20,11 @@ button:hover{filter:brightness(.97)}
 .result{display:flex;flex-direction:column;gap:6px}
 .cardAlt{border:1px dashed #ddd;border-radius:12px;padding:10px;margin:10px 0}
 footer{padding:24px;text-align:center;opacity:.7}
+/* Botón de geolocalización en fila angosta */
+#btnGeo{width:auto}
+
+/* Pills de preferencia */
+.pills{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 4px}
+.pill{width:auto;border-radius:999px;padding:10px 14px;border:1px solid #d0d0d0;background:#fff}
+.pill:hover{background:#f7f9ff}
+.pill.selected{background:#2b67f6;color:#fff;border-color:#2b67f6}
