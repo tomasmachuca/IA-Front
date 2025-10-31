@@ -60,8 +60,8 @@ async function recomendar(){
   const movilidadReducida = (movilidadReducidaEl ? movilidadReducidaEl.value : null) || null
   const ratingMinimo = (ratingMinimoEl && ratingMinimoEl.value) ? parseFloat(ratingMinimoEl.value) : null
   const petFriendlyUsuario = (petFriendlyUsuarioEl ? petFriendlyUsuarioEl.value : null) || null
-  const requiereReserva = (requiereReservaEl ? requiereReservaEl.value : null) || null
-  const soloAbiertos = (soloAbiertosEl ? soloAbiertosEl.value : null) || null
+  const requiereReserva = (requiereReservaEl && requiereReservaEl.value) ? requiereReservaEl.value : null
+  const soloAbiertos = (soloAbiertosEl && soloAbiertosEl.value) ? soloAbiertosEl.value : null
   const tiempoEsperaMax = (tiempoEsperaMaxEl && tiempoEsperaMaxEl.value) ? parseFloat(tiempoEsperaMaxEl.value) : null
   const tipoComida = (tipoComidaEl ? tipoComidaEl.value : null) || null
   const estacionamientoRequerido = (estacionamientoRequeridoEl ? estacionamientoRequeridoEl.value : null) || null
@@ -210,6 +210,8 @@ async function recomendar(){
     
     const data = await r.json()
     console.log('Respuesta recibida:', data);
+    // Guardar datos del usuario para usar en el renderizado
+    window.__usuarioData = usuarioData
     render(data, restaurantes)
   }catch(e){
     console.error('Error en la llamada a la API:', e);
@@ -221,6 +223,121 @@ async function recomendar(){
       btnRecomendar.textContent = btnTextOriginal
     }
   }
+}
+
+// Función para generar mensajes personalizados de justificación
+function generarMensajesJustificacion(restaurante, usuarioData, justifs) {
+  const mensajes = []
+  const tienePenalizacionPrecio = justifs.some(j => j.includes('penalizacion_presupuesto'))
+  
+  // 1. Verificar gustos culinarios - siempre mostrar si hay cocinas en común
+  if (usuarioData.cocinas_favoritas && usuarioData.cocinas_favoritas.length > 0 && restaurante.cocinas) {
+    const cocinasComunes = restaurante.cocinas.filter(c => 
+      usuarioData.cocinas_favoritas.includes(c)
+    )
+    if (cocinasComunes.length > 0) {
+      mensajes.push(`✅ Ofrece ${cocinasComunes.join(', ')}, que coinciden con tus gustos`)
+    }
+  }
+  
+  // 2. Verificar precio - siempre mostrar información detallada
+  if (usuarioData.presupuesto && restaurante.precio_pp !== undefined) {
+    const precioRest = restaurante.precio_pp
+    const presupuesto = usuarioData.presupuesto
+    if (precioRest <= presupuesto) {
+      const porcentaje = ((presupuesto - precioRest) / presupuesto * 100).toFixed(0)
+      if (parseFloat(porcentaje) > 10) {
+        mensajes.push(`💰 Precio de $${precioRest.toLocaleString('es-AR')}, dentro de tu presupuesto de $${presupuesto.toLocaleString('es-AR')} (te sobra ~${porcentaje}%)`)
+      } else {
+        mensajes.push(`💰 Precio de $${precioRest.toLocaleString('es-AR')}, dentro de tu presupuesto de $${presupuesto.toLocaleString('es-AR')}`)
+      }
+    } else if (tienePenalizacionPrecio) {
+      const exceso = ((precioRest - presupuesto) / presupuesto * 100).toFixed(0)
+      mensajes.push(`⚠️ Precio de $${precioRest.toLocaleString('es-AR')}, supera tu presupuesto de $${presupuesto.toLocaleString('es-AR')} en ~${exceso}%`)
+    }
+  }
+  
+  // 3. Verificar cercanía - siempre mostrar si hay tiempo calculado
+  if (restaurante.tiempo_min && restaurante.tiempo_min < 999 && usuarioData.tiempo_max) {
+    const tiempo = Math.round(restaurante.tiempo_min)
+    const tiempoMax = usuarioData.tiempo_max
+    if (tiempo <= tiempoMax) {
+      mensajes.push(`📍 ${tiempo} min de viaje, dentro de tu límite de ${tiempoMax} min`)
+    } else {
+      mensajes.push(`📍 ${tiempo} min de viaje (supera tu límite de ${tiempoMax} min)`)
+    }
+  }
+  
+  // 4. Verificar calidad - siempre mostrar si hay rating
+  if (restaurante.rating !== undefined) {
+    const rating = restaurante.rating
+    const nResenas = restaurante.n_resenas || 0
+    if (usuarioData.rating_minimo && rating >= usuarioData.rating_minimo) {
+      mensajes.push(`⭐ Rating de ${rating.toFixed(1)}${nResenas > 0 ? ` (${nResenas} reseñas)` : ''}, supera tu mínimo de ${usuarioData.rating_minimo}`)
+    } else {
+      mensajes.push(`⭐ Rating de ${rating.toFixed(1)}${nResenas > 0 ? ` con ${nResenas} reseñas` : ''}`)
+    }
+  }
+  
+  // 5. Verificar disponibilidad/horarios - siempre mostrar estado real
+  const soloAbiertos = usuarioData.solo_abiertos
+  if (restaurante.abierto === 'si') {
+    mensajes.push('⏱️ Está abierto ahora y disponible para tu franja horaria')
+  } else if (restaurante.abierto === 'no') {
+    if (soloAbiertos === 'no' || !soloAbiertos) {
+      mensajes.push('⚠️ Actualmente está cerrado (se muestra porque elegiste ver todos los restaurantes)')
+    } else {
+      mensajes.push('⚠️ Actualmente está cerrado, pero cumple con otros criterios importantes')
+    }
+  }
+  
+  // 6. Verificar reserva
+  if (usuarioData.requiere_reserva === 'si' && restaurante.reserva === 'si') {
+    mensajes.push('📋 Requiere reserva (como preferiste)')
+  } else if (usuarioData.requiere_reserva === 'no' && restaurante.reserva === 'no') {
+    mensajes.push('📋 No requiere reserva (como preferiste)')
+  }
+  
+  // 7. Verificar estacionamiento
+  if (usuarioData.estacionamiento_requerido === 'si' && restaurante.estacionamiento_propio === 'si') {
+    mensajes.push('🅿️ Tiene estacionamiento propio (como requeriste)')
+  } else if (justifs.some(j => j.includes('penalizacion_estacionamiento'))) {
+    mensajes.push('⚠️ No tiene estacionamiento propio')
+  }
+  
+  // 8. Verificar pet friendly
+  if (usuarioData.restricciones && usuarioData.restricciones.includes('pet_friendly') && restaurante.pet_friendly === 'si') {
+    mensajes.push('🐕 Acepta mascotas (pet friendly)')
+  }
+  
+  // 9. Verificar tipo de comida
+  if (usuarioData.tipo_comida_preferido && restaurante.tipo_comida === usuarioData.tipo_comida_preferido) {
+    const tipoLabels = {
+      'comida_rapida': 'comida rápida',
+      'gourmet': 'gourmet',
+      'fine_dining': 'fine dining',
+      'casual': 'casual',
+      'bar': 'bar',
+      'cafeteria': 'cafetería'
+    }
+    mensajes.push(`🍽️ Es ${tipoLabels[usuarioData.tipo_comida_preferido] || usuarioData.tipo_comida_preferido} (como preferiste)`)
+  }
+  
+  // 10. Verificar tiempo de espera
+  if (usuarioData.tiempo_espera_max && restaurante.tiempo_espera) {
+    if (restaurante.tiempo_espera <= usuarioData.tiempo_espera_max) {
+      mensajes.push(`⏱️ Tiempo de espera de ~${restaurante.tiempo_espera} min, dentro de tu límite de ${usuarioData.tiempo_espera_max} min`)
+    } else {
+      mensajes.push(`⚠️ Tiempo de espera de ~${restaurante.tiempo_espera} min, supera tu límite de ${usuarioData.tiempo_espera_max} min`)
+    }
+  }
+  
+  // Si no hay mensajes, mostrar mensaje genérico
+  if (mensajes.length === 0 && restaurante.U > 0) {
+    mensajes.push('✅ Cumple con tus criterios principales de búsqueda')
+  }
+  
+  return mensajes
 }
 
 function render(recs, allRestaurants){
@@ -261,39 +378,13 @@ function render(recs, allRestaurants){
     <div><strong>Índice U:</strong> ${r0.U.toFixed(3)}</div>
     <div class="justifications" style="margin-top: 16px; padding: 12px; background: #f5f5f5; border-radius: 8px;">
       <strong style="display: block; margin-bottom: 8px;">💡 ¿Por qué elegimos este restaurante?</strong>
-      ${(Array.isArray(r0.justifs) && r0.justifs.length > 0) 
-        ? `<ul style="margin: 0; padding-left: 20px;">
-            ${r0.justifs.map(j => {
-              // Mejorar las justificaciones para que sean más comprensibles
-              let texto = escapeHtml(j)
-              if (texto.includes('afinidad=') || texto.includes('wg') || texto.toLowerCase().includes('italiana') || texto.toLowerCase().includes('pizza')) {
-                return `<li>✅ Coincide con tus gustos culinarios</li>`
-              }
-              if (texto.includes('precio=') || texto.includes('wp')) {
-                return `<li>💰 Precio adecuado para tu presupuesto</li>`
-              }
-              if (texto.includes('cercania=') || texto.includes('wd')) {
-                return `<li>📍 Ubicación cercana a tu destino</li>`
-              }
-              if (texto.includes('calidad=') || texto.includes('wq') || texto.includes('★')) {
-                return `<li>⭐ Buena calificación y reseñas</li>`
-              }
-              if (texto.includes('disp=') || texto.includes('wa')) {
-                return `<li>⏱️ Disponible para tu franja horaria</li>`
-              }
-              if (texto.includes('penalizacion_presupuesto')) {
-                const valor = texto.match(/penalizacion_presupuesto=([\d.]+)/)
-                return `<li>⚠️ Supera el presupuesto (penalización aplicada)</li>`
-              }
-              if (texto.includes('penalizacion_estacionamiento')) {
-                return `<li>⚠️ No tiene estacionamiento propio (penalización aplicada)</li>`
-              }
-              if (texto.includes('penalizacion_reserva')) {
-                return `<li>⚠️ No requiere reserva (penalización aplicada)</li>`
-              }
-              return `<li>${texto}</li>`
-            }).join('')}
-          </ul>`
+      ${(Array.isArray(r0.justifs) && r0.justifs.length > 0 && window.__usuarioData)
+        ? (() => {
+            const mensajes = generarMensajesJustificacion(r0, window.__usuarioData, r0.justifs)
+            return mensajes.length > 0
+              ? `<ul style="margin: 0; padding-left: 20px;">${mensajes.map(m => `<li>${m}</li>`).join('')}</ul>`
+              : '<p style="margin: 0; color: #666;">Este restaurante cumple con tus criterios de búsqueda.</p>'
+          })()
         : (r0.U > 0 
             ? '<p style="margin: 0; color: #666;">Este restaurante cumple con tus criterios de búsqueda, aunque algunos aspectos pueden haber sido penalizados (presupuesto, estacionamiento, etc.).</p>'
             : '<p style="margin: 0; color: #666;">Este restaurante cumple con los criterios obligatorios, pero tiene penalizaciones significativas que afectan su puntuación.</p>')}
