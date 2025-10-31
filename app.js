@@ -1,30 +1,89 @@
 async function recomendar(){
-  const presupuesto = parseFloat(document.getElementById('presupuesto').value || '0')
-  const tmax = parseFloat(document.getElementById('tmax').value || '0')
-  const gustos = document.getElementById('gustos').value.trim().split(/\s+/).filter(Boolean)
-  const restricciones = document.getElementById('restricciones').value.trim().split(/\s+/).filter(Boolean)
-  // Obtener valores de pesos desde inputs hidden (actualizados por estrellas)
-  let wg = parseFloat(document.getElementById('wg').value||'0.35')
-  let wp = parseFloat(document.getElementById('wp').value||'0.20')
-  let wd = parseFloat(document.getElementById('wd').value||'0.25')
-  let wq = parseFloat(document.getElementById('wq').value||'0.15')
-  let wa = parseFloat(document.getElementById('wa').value||'0.05')
+  // Obtener elementos del DOM de forma segura
+  const presupuestoEl = document.getElementById('presupuesto')
+  const tmaxEl = document.getElementById('tmax')
+  const climaEl = document.getElementById('clima')
+  const franjaEl = document.getElementById('franja')
+  const gustosEl = document.getElementById('gustos')
+  const restriccionesEl = document.getElementById('restricciones')
+  const movilidadEl = document.getElementById('movilidad')
+  const movilidadReducidaEl = document.getElementById('movilidad_reducida')
+  const ratingMinimoEl = document.getElementById('rating_minimo')
+  const petFriendlyUsuarioEl = document.getElementById('pet_friendly_usuario')
+  const requiereReservaEl = document.getElementById('requiere_reserva')
+  const soloAbiertosEl = document.getElementById('solo_abiertos')
+  const tiempoEsperaMaxEl = document.getElementById('tiempo_espera_max')
+  const tipoComidaEl = document.getElementById('tipo_comida')
+  const estacionamientoRequeridoEl = document.getElementById('estacionamiento_requerido')
   
-  // Normalizar pesos para que sumen 1.0
-  const sum = wg + wp + wd + wq + wa
-  if (sum > 0) {
-    wg = wg / sum
-    wp = wp / sum
-    wd = wd / sum
-    wq = wq / sum
-    wa = wa / sum
+  // Validar que los elementos existan
+  if (!presupuestoEl || !tmaxEl || !climaEl || !franjaEl) {
+    console.error('Error: Faltan elementos requeridos en el formulario')
+    alert('Error: El formulario no está completo. Por favor, recargá la página.')
+    return
   }
-  const clima = document.getElementById('clima').value
-  const franja = document.getElementById('franja').value
-  const grupo = document.getElementById('grupo').value
-  const direccion = document.getElementById('direccion').value.trim()
-  const latitud = document.getElementById('latitud').value ? parseFloat(document.getElementById('latitud').value) : null
-  const longitud = document.getElementById('longitud').value ? parseFloat(document.getElementById('longitud').value) : null
+  
+  // Validar campos requeridos (usar valores por defecto si los elementos no existen)
+  const presupuesto = presupuestoEl ? parseFloat(presupuestoEl.value || '0') : 0
+  const tmax = tmaxEl ? parseFloat(tmaxEl.value || '0') : 0
+  const clima = climaEl ? climaEl.value : ''
+  const franja = franjaEl ? franjaEl.value : ''
+  
+  if (!presupuesto || presupuesto <= 0) {
+    alert('Por favor, ingresá un presupuesto válido.')
+    return
+  }
+  
+  if (!tmax || tmax <= 0) {
+    alert('Por favor, ingresá un tiempo máximo válido.')
+    return
+  }
+  
+  if (!clima) {
+    alert('Por favor, seleccioná el clima.')
+    return
+  }
+  
+  if (!franja) {
+    alert('Por favor, seleccioná la franja horaria.')
+    return
+  }
+  
+  // Obtener gustos y restricciones - permitir valores vacíos
+  const gustos = gustosEl && gustosEl.value.trim() 
+    ? gustosEl.value.trim().split(/\s+/).filter(Boolean) 
+    : []
+  const restricciones = restriccionesEl && restriccionesEl.value.trim() 
+    ? restriccionesEl.value.trim().split(/\s+/).filter(Boolean) 
+    : []
+  const movilidad = (movilidadEl ? movilidadEl.value : 'a_pie') || 'a_pie'
+  const movilidadReducida = (movilidadReducidaEl ? movilidadReducidaEl.value : null) || null
+  const ratingMinimo = (ratingMinimoEl && ratingMinimoEl.value) ? parseFloat(ratingMinimoEl.value) : null
+  const petFriendlyUsuario = (petFriendlyUsuarioEl ? petFriendlyUsuarioEl.value : null) || null
+  const requiereReserva = (requiereReservaEl ? requiereReservaEl.value : null) || null
+  const soloAbiertos = (soloAbiertosEl ? soloAbiertosEl.value : null) || null
+  const tiempoEsperaMax = (tiempoEsperaMaxEl && tiempoEsperaMaxEl.value) ? parseFloat(tiempoEsperaMaxEl.value) : null
+  const tipoComida = (tipoComidaEl ? tipoComidaEl.value : null) || null
+  const estacionamientoRequerido = (estacionamientoRequeridoEl ? estacionamientoRequeridoEl.value : null) || null
+  
+  // Si el usuario requiere pet friendly, agregarlo a restricciones para el filtro
+  if (petFriendlyUsuario === 'si') {
+    restricciones.push('pet_friendly')
+  }
+  
+  // Valores por defecto para los pesos (ya que eliminamos la sección de pesos avanzados)
+  const wg = 0.35
+  const wp = 0.20
+  const wd = 0.25
+  const wq = 0.15
+  const wa = 0.05
+  
+  const direccionEl = document.getElementById('direccion')
+  const latitudEl = document.getElementById('latitud')
+  const longitudEl = document.getElementById('longitud')
+  const direccion = direccionEl ? direccionEl.value.trim() : ''
+  const latitud = (latitudEl && latitudEl.value) ? parseFloat(latitudEl.value) : null
+  const longitud = (longitudEl && longitudEl.value) ? parseFloat(longitudEl.value) : null
 
   // Obtener restaurantes del backend
   let restaurantes = []
@@ -42,10 +101,19 @@ async function recomendar(){
     return
   }
   
+  // Mapear movilidad a modo de Google Maps API
+  const modoMap = {
+    'a_pie': 'walking',
+    'auto': 'driving',
+    'moto': 'driving',
+    'bicicleta': 'bicycling',
+    'transporte_publico': 'transit'
+  }
+  
   // Si hay dirección del usuario, calcular tiempos usando Google Maps API (backend)
   if (direccion) {
     try {
-      const modo = "walking" // Por ahora siempre walking, podría cambiar según movilidad
+      const modo = modoMap[movilidad] || 'walking'
       const calcularTiemposResponse = await fetch('http://localhost:8000/api/restaurantes/calcular-tiempos', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
@@ -67,14 +135,37 @@ async function recomendar(){
 
   const usuarioData = {
     id:"u1",
-    cocinas_favoritas: gustos,
+    cocinas_favoritas: gustos.length > 0 ? gustos : [],
     picante: "bajo",
     presupuesto,
     tiempo_max: tmax,
-    movilidad: "a_pie",
-    restricciones,
+    movilidad: movilidad,
+    restricciones: restricciones.length > 0 ? restricciones : [],
     diversidad: "media",
     wg,wp,wd,wq,wa
+  }
+  
+  // Agregar campos opcionales si están disponibles
+  if (movilidadReducida) {
+    usuarioData.movilidad_reducida = movilidadReducida
+  }
+  if (ratingMinimo !== null && !isNaN(ratingMinimo)) {
+    usuarioData.rating_minimo = ratingMinimo
+  }
+  if (requiereReserva) {
+    usuarioData.requiere_reserva = requiereReserva
+  }
+  if (soloAbiertos) {
+    usuarioData.solo_abiertos = soloAbiertos
+  }
+  if (tiempoEsperaMax !== null && !isNaN(tiempoEsperaMax)) {
+    usuarioData.tiempo_espera_max = tiempoEsperaMax
+  }
+  if (tipoComida) {
+    usuarioData.tipo_comida_preferido = tipoComida
+  }
+  if (estacionamientoRequerido) {
+    usuarioData.estacionamiento_requerido = estacionamientoRequerido
   }
   
   // Agregar dirección si está disponible
@@ -89,8 +180,16 @@ async function recomendar(){
   // Enviar sin restaurantes para que el backend los cargue automáticamente si no se calculó tiempo
   const body = {
     usuario: usuarioData,
-    contexto: { clima, dia:"viernes", franja, grupo },
+    contexto: { clima, dia:"viernes", franja },
     restaurantes: restaurantes // Si ya tienen tiempo_min calculado, enviarlos; si no, dejar array vacío para que backend los calcule
+  }
+
+  // Mostrar indicador de carga
+  const btnRecomendar = document.getElementById('btnRecomendar')
+  const btnTextOriginal = btnRecomendar ? btnRecomendar.textContent : ''
+  if (btnRecomendar) {
+    btnRecomendar.disabled = true
+    btnRecomendar.textContent = 'Procesando...'
   }
 
   try{
@@ -99,11 +198,28 @@ async function recomendar(){
       headers:{'Content-Type':'application/json'},
       body: JSON.stringify(body)
     };
+    console.log('Enviando request:', body);
     const r = await fetch('http://localhost:8000/api/recommend', requestOptions)
+    
+    if (!r.ok) {
+      const errorText = await r.text();
+      console.error('Error del servidor:', r.status, errorText);
+      alert(`Error del servidor (${r.status}): ${errorText}`);
+      return;
+    }
+    
     const data = await r.json()
+    console.log('Respuesta recibida:', data);
     render(data, restaurantes)
   }catch(e){
     console.error('Error en la llamada a la API:', e);
+    alert('Error al obtener recomendación: ' + e.message);
+  }finally{
+    // Restaurar botón
+    if (btnRecomendar) {
+      btnRecomendar.disabled = false
+      btnRecomendar.textContent = btnTextOriginal
+    }
   }
 }
 
@@ -113,7 +229,7 @@ function render(recs, allRestaurants){
   const lista = document.getElementById('lista')
   if(!Array.isArray(recs) || recs.length===0){
     cont.classList.remove('hidden')
-    top.innerHTML = '<div class="result"><strong>No hay resultados</strong><p>Revisá presupuesto, restricciones o si los restaurantes están abiertos.</p></div>'
+    top.innerHTML = '<div class="result"><strong>No hay resultados</strong><p>Revisá presupuesto, restricciones o si los restaurantes están abiertos. Ningún restaurante cumplió con todos los criterios requeridos.</p></div>'
     lista.innerHTML = ''
     return
   }
@@ -133,12 +249,54 @@ function render(recs, allRestaurants){
     <p><strong>Rating:</strong> ${r0.rating} (${r0.n_resenas} reseñas)</p>
     <p><strong>Cocinas:</strong> ${(Array.isArray(r0.cocinas) && r0.cocinas.length > 0) ? r0.cocinas.join(', ') : 'No especificado'}</p>
     ${(Array.isArray(r0.atributos) && r0.atributos.length > 0) ? `<p><strong>Atributos:</strong> ${r0.atributos.join(', ')}</p>` : ''}
-    ${r0.reserva ? `<p><strong>Reserva:</strong> ${r0.reserva}</p>` : ''}
-    ${r0.abierto ? `<p><strong>Abierto:</strong> ${r0.abierto}</p>` : ''}
-    ${r0.tiempo_min && r0.tiempo_min < 999 ? `<p><strong>Tiempo estimado:</strong> ${r0.tiempo_min} min${r0.distancia_km ? ` (${r0.distancia_km} km)` : ''}</p>` : ''}
+    ${r0.reserva ? `<p><strong>📋 Reserva:</strong> ${r0.reserva === 'si' ? 'Sí, se requiere' : 'No'}</p>` : ''}
+    ${r0.abierto ? `<p><strong>🕐 Abierto ahora:</strong> ${r0.abierto === 'si' ? '✅ Sí' : '❌ No'}</p>` : ''}
+    ${r0.direccion ? `<p><strong>📍 Dirección:</strong> ${r0.direccion}</p>` : ''}
+    ${r0.tiempo_min && r0.tiempo_min < 999 ? `<p><strong>🚗 Tiempo estimado de viaje:</strong> ${Math.round(r0.tiempo_min)} min${r0.distancia_km ? ` (${r0.distancia_km} km)` : ''}</p>` : ''}
+    ${r0.tiempo_espera ? `<p><strong>Tiempo de espera promedio:</strong> ${r0.tiempo_espera} min</p>` : ''}
+    ${r0.tipo_comida ? `<p><strong>Tipo de comida:</strong> ${r0.tipo_comida}</p>` : ''}
+    ${r0.horario_apertura && r0.horario_cierre ? `<p><strong>Horarios:</strong> ${r0.horario_apertura} - ${r0.horario_cierre}</p>` : ''}
+    ${r0.pet_friendly ? `<p><strong>🐕 Pet friendly:</strong> ${r0.pet_friendly === 'si' ? 'Sí' : 'No'}</p>` : ''}
+    ${r0.estacionamiento_propio ? `<p><strong>🅿️ Estacionamiento propio:</strong> ${r0.estacionamiento_propio === 'si' ? 'Sí' : 'No'}</p>` : ''}
     <div><strong>Índice U:</strong> ${r0.U.toFixed(3)}</div>
-    <div class="justifications">
-      ${(Array.isArray(r0.justifs) && r0.justifs.length > 0) ? r0.justifs.map(j=>`<span class="badge">${escapeHtml(j)}</span>`).join(' ') : 'Sin justificaciones'}
+    <div class="justifications" style="margin-top: 16px; padding: 12px; background: #f5f5f5; border-radius: 8px;">
+      <strong style="display: block; margin-bottom: 8px;">💡 ¿Por qué elegimos este restaurante?</strong>
+      ${(Array.isArray(r0.justifs) && r0.justifs.length > 0) 
+        ? `<ul style="margin: 0; padding-left: 20px;">
+            ${r0.justifs.map(j => {
+              // Mejorar las justificaciones para que sean más comprensibles
+              let texto = escapeHtml(j)
+              if (texto.includes('afinidad=') || texto.includes('wg') || texto.toLowerCase().includes('italiana') || texto.toLowerCase().includes('pizza')) {
+                return `<li>✅ Coincide con tus gustos culinarios</li>`
+              }
+              if (texto.includes('precio=') || texto.includes('wp')) {
+                return `<li>💰 Precio adecuado para tu presupuesto</li>`
+              }
+              if (texto.includes('cercania=') || texto.includes('wd')) {
+                return `<li>📍 Ubicación cercana a tu destino</li>`
+              }
+              if (texto.includes('calidad=') || texto.includes('wq') || texto.includes('★')) {
+                return `<li>⭐ Buena calificación y reseñas</li>`
+              }
+              if (texto.includes('disp=') || texto.includes('wa')) {
+                return `<li>⏱️ Disponible para tu franja horaria</li>`
+              }
+              if (texto.includes('penalizacion_presupuesto')) {
+                const valor = texto.match(/penalizacion_presupuesto=([\d.]+)/)
+                return `<li>⚠️ Supera el presupuesto (penalización aplicada)</li>`
+              }
+              if (texto.includes('penalizacion_estacionamiento')) {
+                return `<li>⚠️ No tiene estacionamiento propio (penalización aplicada)</li>`
+              }
+              if (texto.includes('penalizacion_reserva')) {
+                return `<li>⚠️ No requiere reserva (penalización aplicada)</li>`
+              }
+              return `<li>${texto}</li>`
+            }).join('')}
+          </ul>`
+        : (r0.U > 0 
+            ? '<p style="margin: 0; color: #666;">Este restaurante cumple con tus criterios de búsqueda, aunque algunos aspectos pueden haber sido penalizados (presupuesto, estacionamiento, etc.).</p>'
+            : '<p style="margin: 0; color: #666;">Este restaurante cumple con los criterios obligatorios, pero tiene penalizaciones significativas que afectan su puntuación.</p>')}
     </div>
   </div>`
 
@@ -156,9 +314,15 @@ function render(recs, allRestaurants){
       <span>Precio: $${r.precio_pp} | Rating: ${r.rating} (${r.n_resenas} reseñas)</span><br/>
       <span>Cocinas: ${(Array.isArray(r.cocinas) && r.cocinas.length > 0) ? r.cocinas.join(', ') : 'No especificado'}</span><br/>
       ${(Array.isArray(r.atributos) && r.atributos.length > 0) ? `<span>Atributos: ${r.atributos.join(', ')}</span><br/>` : ''}
-      ${r.reserva ? `<span>Reserva: ${r.reserva}</span><br/>` : ''}
-      ${r.abierto ? `<span>Abierto: ${r.abierto}</span><br/>` : ''}
-      ${r.tiempo_min && r.tiempo_min < 999 ? `<span>Tiempo estimado: ${r.tiempo_min} min${r.distancia_km ? ` (${r.distancia_km} km)` : ''}</span><br/>` : ''}
+      ${r.reserva ? `<span>📋 Reserva: ${r.reserva === 'si' ? 'Sí, se requiere' : 'No'}</span><br/>` : ''}
+      ${r.abierto ? `<span>🕐 Abierto ahora: ${r.abierto === 'si' ? '✅ Sí' : '❌ No'}</span><br/>` : ''}
+      ${r.direccion ? `<span>📍 Dirección: ${r.direccion}</span><br/>` : ''}
+      ${r.tiempo_min && r.tiempo_min < 999 ? `<span>Tiempo estimado de viaje: ${Math.round(r.tiempo_min)} min${r.distancia_km ? ` (${r.distancia_km} km)` : ''}</span><br/>` : ''}
+      ${r.tiempo_espera ? `<span>Tiempo de espera promedio: ${r.tiempo_espera} min</span><br/>` : ''}
+      ${r.tipo_comida ? `<span>Tipo de comida: ${r.tipo_comida}</span><br/>` : ''}
+      ${r.horario_apertura && r.horario_cierre ? `<span>Horarios: ${r.horario_apertura} - ${r.horario_cierre}</span><br/>` : ''}
+      ${r.pet_friendly ? `<span>🐕 Pet friendly: ${r.pet_friendly === 'si' ? 'Sí' : 'No'}</span><br/>` : ''}
+      ${r.estacionamiento_propio ? `<span>🅿️ Estacionamiento propio: ${r.estacionamiento_propio === 'si' ? 'Sí' : 'No'}</span><br/>` : ''}
       <div class="justifications">
         ${(Array.isArray(r.justifs) && r.justifs.length > 0) ? r.justifs.map(j=>`<span class="badge">${escapeHtml(j)}</span>`).join(' ') : 'Sin justificaciones'}
       </div>
@@ -179,6 +343,11 @@ async function obtenerUbicacion() {
   const direccionEl = document.getElementById('direccion')
   const latEl = document.getElementById('latitud')
   const lonEl = document.getElementById('longitud')
+  
+  if (!statusEl || !direccionEl || !latEl || !lonEl) {
+    console.error('Elementos del formulario de ubicación no encontrados')
+    return
+  }
   
   if (!navigator.geolocation) {
     statusEl.textContent = 'Tu navegador no soporta geolocalización'
@@ -258,56 +427,8 @@ async function obtenerUbicacion() {
   }
 }
 
-// Inicializar sistema de estrellas para pesos
-function inicializarEstrellas() {
-  document.querySelectorAll('.stars-container').forEach(container => {
-    const weightId = container.getAttribute('data-weight')
-    const inputHidden = document.getElementById(weightId)
-    if (!inputHidden) return
-    
-    const stars = Array.from(container.querySelectorAll('.star'))
-    
-    // Obtener valor inicial y convertir a número de estrellas
-    let currentValue = parseFloat(inputHidden.value) || 0
-    const numEstrellas = valorANumeroEstrellas(currentValue)
-    actualizarEstrellasVisual(stars, numEstrellas)
-    
-    // Agregar event listeners a cada estrella
-    stars.forEach((star, index) => {
-      star.addEventListener('click', (e) => {
-        e.preventDefault()
-        e.stopPropagation()
-        const numStars = index + 1 // 1-5
-        const value = parseFloat(star.getAttribute('data-value'))
-        inputHidden.value = value
-        actualizarEstrellasVisual(stars, numStars)
-      })
-    })
-  })
-}
-
-function valorANumeroEstrellas(value) {
-  // Convertir valor decimal (0-1) a número de estrellas (1-5)
-  if (value <= 0.2) return 1
-  if (value <= 0.4) return 2
-  if (value <= 0.6) return 3
-  if (value <= 0.8) return 4
-  return 5
-}
-
-function actualizarEstrellasVisual(stars, numEstrellas) {
-  stars.forEach((star, index) => {
-    if (index < numEstrellas) {
-      star.classList.add('active')
-    } else {
-      star.classList.remove('active')
-    }
-  })
-}
-
 // Asignar event listeners cuando el DOM esté listo
 function inicializarEventListeners() {
-  inicializarEstrellas()
   
   const btnUbicacion = document.getElementById('btnUbicacionAuto')
   if (btnUbicacion) {

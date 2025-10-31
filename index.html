@@ -25,8 +25,72 @@
         <label>Gustos (separados por espacio)
           <input id="gustos" type="text" placeholder="ej: italiana pizza">
         </label>
-        <label>Restricciones (ej: sin_tacc vegano)
-          <input id="restricciones" type="text" placeholder="">
+        <label>Restricciones alimentarias
+          <input id="restricciones" type="text" placeholder="ej: sin_tacc vegano vegetariano celiaco intolerancia_lactosa kosher fit">
+          <small style="display: block; margin-top: 4px; color: #666; font-size: 0.85em;">Opciones: sin_tacc, vegano, vegetariano, celiaco, intolerancia_lactosa, kosher, fit</small>
+        </label>
+        <label>🚗 Movilidad
+          <select id="movilidad">
+            <option value="a_pie" selected>A pie</option>
+            <option value="auto">Auto</option>
+            <option value="moto">Moto</option>
+            <option value="bicicleta">Bicicleta</option>
+            <option value="transporte_publico">Transporte público</option>
+          </select>
+        </label>
+        <label>♿ Movilidad reducida
+          <select id="movilidad_reducida">
+            <option value="">No especificar</option>
+            <option value="si">Sí</option>
+            <option value="no">No</option>
+          </select>
+        </label>
+        <label>⭐ Rating mínimo
+          <input id="rating_minimo" type="number" min="0" max="5" step="0.1" placeholder="0.0">
+          <small style="display: block; margin-top: 4px; color: #666; font-size: 0.85em;">Mínimo de estrellas requerido (0-5)</small>
+        </label>
+        <label>🐕 Pet friendly (quiero llevar mi mascota)
+          <select id="pet_friendly_usuario">
+            <option value="">No aplica</option>
+            <option value="si">Sí</option>
+            <option value="no">No</option>
+          </select>
+        </label>
+        <label>📋 Requiere reserva
+          <select id="requiere_reserva">
+            <option value="">No especificar</option>
+            <option value="si">Sí (solo restaurantes con reserva)</option>
+            <option value="no">No (solo restaurantes sin reserva)</option>
+          </select>
+        </label>
+        <label>🕐 Solo abiertos ahora
+          <select id="solo_abiertos">
+            <option value="">No especificar</option>
+            <option value="si">Sí (solo restaurantes abiertos)</option>
+            <option value="no">No (mostrar todos)</option>
+          </select>
+        </label>
+        <label>⏱ Tiempo máximo de espera (min)
+          <input id="tiempo_espera_max" type="number" min="0" step="1" placeholder="ej: 20">
+          <small style="display: block; margin-top: 4px; color: #666; font-size: 0.85em;">Tiempo máximo de espera aceptable</small>
+        </label>
+        <label>🍽️ Tipo de comida
+          <select id="tipo_comida">
+            <option value="">No especificar</option>
+            <option value="comida_rapida">Comida rápida</option>
+            <option value="gourmet">Gourmet</option>
+            <option value="fine_dining">Fine Dining</option>
+            <option value="casual">Casual</option>
+            <option value="bar">Bar</option>
+            <option value="cafeteria">Cafetería</option>
+          </select>
+        </label>
+        <label>🅿️ Estacionamiento propio requerido
+          <select id="estacionamiento_requerido">
+            <option value="">No especificar</option>
+            <option value="si">Sí (solo con estacionamiento)</option>
+            <option value="no">No (sin estacionamiento)</option>
+          </select>
         </label>
         <label class="full-width">📍 Dirección (opcional)
           <div style="display: flex; gap: 8px; margin-top: 4px;">
@@ -39,62 +103,6 @@
         </label>
       </div>
 
-      <details>
-        <summary>Pesos avanzados (opcional)</summary>
-        <div class="grid">
-          <label>✔︎ Importancia de la Afinidad
-            <div class="stars-container" data-weight="wg">
-              <span class="star" data-value="0.2">⭐</span>
-              <span class="star" data-value="0.4">⭐</span>
-              <span class="star" data-value="0.6">⭐</span>
-              <span class="star" data-value="0.8">⭐</span>
-              <span class="star" data-value="1.0">⭐</span>
-            </div>
-            <input type="hidden" id="wg" value="0.35">
-          </label>
-          <label>$ Importancia del Precio
-            <div class="stars-container" data-weight="wp">
-              <span class="star" data-value="0.2">⭐</span>
-              <span class="star" data-value="0.4">⭐</span>
-              <span class="star" data-value="0.6">⭐</span>
-              <span class="star" data-value="0.8">⭐</span>
-              <span class="star" data-value="1.0">⭐</span>
-            </div>
-            <input type="hidden" id="wp" value="0.20">
-          </label>
-          <label>📍 Importancia de la Cercanía
-            <div class="stars-container" data-weight="wd">
-              <span class="star" data-value="0.2">⭐</span>
-              <span class="star" data-value="0.4">⭐</span>
-              <span class="star" data-value="0.6">⭐</span>
-              <span class="star" data-value="0.8">⭐</span>
-              <span class="star" data-value="1.0">⭐</span>
-            </div>
-            <input type="hidden" id="wd" value="0.25">
-          </label>
-          <label>⭐ Importancia de la Calidad
-            <div class="stars-container" data-weight="wq">
-              <span class="star" data-value="0.2">⭐</span>
-              <span class="star" data-value="0.4">⭐</span>
-              <span class="star" data-value="0.6">⭐</span>
-              <span class="star" data-value="0.8">⭐</span>
-              <span class="star" data-value="1.0">⭐</span>
-            </div>
-            <input type="hidden" id="wq" value="0.15">
-          </label>
-          <label>⏱ Importancia de la Disponibilidad
-            <div class="stars-container" data-weight="wa">
-              <span class="star" data-value="0.2">⭐</span>
-              <span class="star" data-value="0.4">⭐</span>
-              <span class="star" data-value="0.6">⭐</span>
-              <span class="star" data-value="0.8">⭐</span>
-              <span class="star" data-value="1.0">⭐</span>
-            </div>
-            <input type="hidden" id="wa" value="0.05">
-          </label>
-        </div>
-        <p class="hint">Hacé clic en las estrellas para ajustar la importancia. El sistema normalizará automáticamente los valores.</p>
-      </details>
     </section>
 
     <section class="card">
@@ -117,15 +125,6 @@
             <option>desayuno</option>
             <option>merienda</option>
             <option>madrugada</option>
-          </select>
-        </label>
-        <label>Grupo
-          <select id="grupo">
-            <option value="" selected disabled hidden>Selecciona una opción</option>
-            <option>pareja</option>
-            <option>amigos</option>
-            <option>familia</option>
-            <option>solo</option>
           </select>
         </label>
       </div>
