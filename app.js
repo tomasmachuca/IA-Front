@@ -71,7 +71,12 @@ async function recomendar(){
     restricciones.push('pet_friendly')
   }
   
+  // Obtener preferencia de usar pesos optimizados por IA
+  const usarPesosOptimizadosEl = document.getElementById('usar_pesos_optimizados')
+  const usar_pesos_optimizados = usarPesosOptimizadosEl ? usarPesosOptimizadosEl.checked : true
+  
   // Valores por defecto para los pesos (ya que eliminamos la sección de pesos avanzados)
+  // Estos se usarán solo si usar_pesos_optimizados es false
   const wg = 0.35
   const wp = 0.20
   const wd = 0.25
@@ -181,7 +186,8 @@ async function recomendar(){
   const body = {
     usuario: usuarioData,
     contexto: { clima, dia:"viernes", franja },
-    restaurantes: restaurantes // Si ya tienen tiempo_min calculado, enviarlos; si no, dejar array vacío para que backend los calcule
+    restaurantes: restaurantes, // Si ya tienen tiempo_min calculado, enviarlos; si no, dejar array vacío para que backend los calcule
+    usar_pesos_optimizados: usar_pesos_optimizados  // Flag para usar o no los pesos optimizados por IA
   }
 
   // Mostrar indicador de carga
@@ -340,6 +346,11 @@ function generarMensajesJustificacion(restaurante, usuarioData, justifs) {
   return mensajes
 }
 
+// Guardar datos globales para feedback
+let currentRecommendations = []
+let currentUsuarioData = null
+let currentContexto = null
+
 function render(recs, allRestaurants){
   const cont = document.getElementById('resultado')
   const top = document.getElementById('top')
@@ -351,6 +362,11 @@ function render(recs, allRestaurants){
     return
   }
   cont.classList.remove('hidden')
+  
+  // Guardar recomendaciones y datos para feedback
+  currentRecommendations = recs
+  currentUsuarioData = window.__usuarioData
+  
   const r0_rec = recs[0] // Recomendación principal del backend
   const r0_full = allRestaurants.find(r => r.id === r0_rec.id) || {} // Detalles completos
   // Combinar datos: r0_rec (del recomendador) tiene prioridad, incluye tiempo_min calculado
@@ -420,6 +436,303 @@ function render(recs, allRestaurants){
     </div>
   `}).join('')
   window.__last = recs
+  
+  // Configurar botones de feedback para las primeras 3 recomendaciones
+  setupFeedbackButtons(recs.slice(0, 3), allRestaurants)
+}
+
+// Variable global para almacenar el restaurante seleccionado antes de enviar
+let selectedRestaurantForFeedback = null
+let selectedRestaurantsRejected = []
+
+// Configurar botones de enviar y cancelar una sola vez cuando se carga la página
+function setupFeedbackButtonsOnce() {
+  const btnEnviarFeedback = document.getElementById('btnEnviarFeedback')
+  const btnCancelarFeedback = document.getElementById('btnCancelarFeedback')
+  
+  if (btnEnviarFeedback && !btnEnviarFeedback.hasAttribute('data-configured')) {
+    btnEnviarFeedback.setAttribute('data-configured', 'true')
+    btnEnviarFeedback.addEventListener('click', async (e) => {
+      e.preventDefault()
+      await enviarFeedbackConRazones()
+    })
+  }
+  
+  if (btnCancelarFeedback && !btnCancelarFeedback.hasAttribute('data-configured')) {
+    btnCancelarFeedback.setAttribute('data-configured', 'true')
+    btnCancelarFeedback.addEventListener('click', (e) => {
+      e.preventDefault()
+      const feedbackReasonsEl = document.getElementById('feedback-reasons')
+      const feedbackButtonsEl = document.getElementById('feedback-buttons')
+      
+      if (feedbackReasonsEl) {
+        feedbackReasonsEl.style.display = 'none'
+      }
+      selectedRestaurantForFeedback = null
+      selectedRestaurantsRejected = []
+      
+      // Rehabilitar botones
+      if (feedbackButtonsEl) {
+        Array.from(feedbackButtonsEl.children).forEach(btn => {
+          btn.disabled = false
+          btn.style.opacity = '1'
+          btn.style.backgroundColor = ''
+          btn.style.color = ''
+        })
+      }
+    })
+  }
+}
+
+async function setupFeedbackButtons(recs, allRestaurants) {
+  const feedbackButtonsEl = document.getElementById('feedback-buttons')
+  const feedbackStatusEl = document.getElementById('feedback-status')
+  const feedbackSectionEl = document.getElementById('feedback-section')
+  const feedbackReasonsEl = document.getElementById('feedback-reasons')
+  
+  if (!feedbackButtonsEl || !feedbackStatusEl || !feedbackSectionEl || !feedbackReasonsEl) return
+  
+  // Configurar botones de enviar/cancelar una sola vez
+  setupFeedbackButtonsOnce()
+  
+  // Limpiar botones anteriores y ocultar razones
+  feedbackButtonsEl.innerHTML = ''
+  feedbackStatusEl.innerHTML = ''
+  feedbackStatusEl.style.color = ''
+  feedbackReasonsEl.style.display = 'none'
+  
+  if (recs.length === 0) {
+    feedbackSectionEl.style.display = 'none'
+    return
+  }
+  
+  feedbackSectionEl.style.display = 'block'
+  
+  // Crear botón para cada recomendación (máximo 3)
+  recs.forEach((r_rec, index) => {
+    const r_full = allRestaurants.find(r => r.id === r_rec.id) || {}
+    const r = {...r_full, ...r_rec}
+    
+    const button = document.createElement('button')
+    button.className = 'primary'
+    button.style.cssText = 'padding: 10px 16px; white-space: normal; text-align: left; min-width: 150px;'
+    button.innerHTML = `
+      <strong>${r.nombre || 'Restaurante ' + (index + 1)}</strong><br>
+      <small style="font-size: 0.85em;">${r.cocinas && r.cocinas.length > 0 ? r.cocinas.join(', ') : ''} - $${r.precio_pp || 0}</small>
+    `
+    
+    // Asegurar que no sea submit
+    button.type = 'button'
+    
+    // Configurar el evento de click - SOLO mostrar razones, NO enviar feedback
+    // IMPORTANTE: Esta función NO debe llamar a enviarFeedbackConRazones()
+    const handleRestaurantClick = function(e) {
+      e.preventDefault()
+      e.stopPropagation()
+      e.stopImmediatePropagation()
+      
+      console.log('=== CLICK EN BOTÓN DE RESTAURANTE ===')
+      console.log('Restaurante:', r.nombre)
+      console.log('⚠️ IMPORTANTE: Este click SOLO debe mostrar las razones, NO enviar feedback')
+      
+      // Verificar que los elementos existan
+      const feedbackReasonsEl = document.getElementById('feedback-reasons')
+      const feedbackStatusEl = document.getElementById('feedback-status')
+      
+      if (!feedbackReasonsEl) {
+        console.error('ERROR: No se encontró feedback-reasons en el DOM')
+        alert('Error: No se pudo encontrar la sección de razones. Por favor recargá la página.')
+        return false
+      }
+      
+      // Guardar selección
+      selectedRestaurantForFeedback = r
+      selectedRestaurantsRejected = recs.filter((rec, idx) => idx !== index).map(rec => {
+        const r_rej = allRestaurants.find(rest => rest.id === rec.id) || {}
+        return {...r_rej, ...rec}
+      })
+      
+      console.log('Restaurante seleccionado guardado:', selectedRestaurantForFeedback?.nombre)
+      console.log('Restaurantes rechazados:', selectedRestaurantsRejected.map(r => r.nombre))
+      
+      // Deshabilitar todos los botones de restaurantes
+      const allButtons = feedbackButtonsEl.querySelectorAll('button')
+      allButtons.forEach(btn => {
+        btn.disabled = true
+        btn.style.opacity = '0.6'
+        // Resetear estilos de otros botones
+        if (btn !== button) {
+          btn.style.backgroundColor = ''
+          btn.style.color = ''
+        }
+      })
+      
+      // Resaltar el botón seleccionado
+      button.style.backgroundColor = '#1976d2'
+      button.style.color = 'white'
+      
+      // Limpiar checkboxes anteriores
+      const checkboxes = feedbackReasonsEl.querySelectorAll('input[type="checkbox"]')
+      console.log('Checkboxes encontrados:', checkboxes.length)
+      checkboxes.forEach(cb => {
+        cb.checked = false
+      })
+      
+      // Limpiar mensaje de estado
+      if (feedbackStatusEl) {
+        feedbackStatusEl.innerHTML = ''
+        feedbackStatusEl.style.color = ''
+      }
+      
+      // IMPORTANTE: Solo mostrar la sección de razones, NO enviar feedback
+      console.log('Mostrando sección de razones...')
+      console.log('⚠️ NO se debe llamar a enviarFeedbackConRazones() aquí')
+      
+      feedbackReasonsEl.style.display = 'block'
+      feedbackReasonsEl.style.visibility = 'visible'
+      feedbackReasonsEl.style.opacity = '1'
+      feedbackReasonsEl.removeAttribute('hidden')
+      
+      // Forzar visibilidad
+      setTimeout(() => {
+        const computedStyle = window.getComputedStyle(feedbackReasonsEl)
+        console.log('Computed display después de mostrar:', computedStyle.display)
+        if (computedStyle.display === 'none') {
+          console.warn('La sección está oculta, forzando display...')
+          feedbackReasonsEl.style.setProperty('display', 'block', 'important')
+          feedbackReasonsEl.style.setProperty('visibility', 'visible', 'important')
+        }
+        console.log('✅ Sección de razones visible. El usuario ahora puede seleccionar razones y hacer click en "Enviar feedback"')
+      }, 10)
+      
+      // Scroll suave a la sección
+      setTimeout(() => {
+        feedbackReasonsEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+      }, 100)
+      
+      // VERIFICACIÓN FINAL: Asegurarse de que NO se está enviando feedback automáticamente
+      console.log('🔍 Verificación: selectedRestaurantForFeedback existe pero NO se envía feedback automáticamente')
+      console.log('🔍 El feedback solo se enviará cuando el usuario haga click en el botón "Enviar feedback"')
+      
+      return false
+    }
+    
+    // Asignar el handler - usar capture: false para que sea en bubble phase
+    button.addEventListener('click', handleRestaurantClick, false)
+    
+    feedbackButtonsEl.appendChild(button)
+  })
+}
+
+async function enviarFeedbackConRazones() {
+  const feedbackStatusEl = document.getElementById('feedback-status')
+  const feedbackReasonsEl = document.getElementById('feedback-reasons')
+  
+  if (!selectedRestaurantForFeedback) {
+    console.error('No hay restaurante seleccionado')
+    if (feedbackStatusEl) {
+      feedbackStatusEl.innerHTML = '⚠️ No hay restaurante seleccionado'
+      feedbackStatusEl.style.color = '#d32f2f'
+    }
+    return
+  }
+  
+  if (!feedbackReasonsEl) {
+    console.error('No se encontró el elemento feedback-reasons')
+    return
+  }
+  
+  // Asegurarnos de que la sección esté visible para poder buscar los checkboxes
+  if (feedbackReasonsEl.style.display === 'none') {
+    feedbackReasonsEl.style.display = 'block'
+  }
+  
+  // Obtener razones seleccionadas - buscar todos los checkboxes marcados
+  const checkboxes = feedbackReasonsEl.querySelectorAll('input[type="checkbox"]:checked')
+  const razones = Array.from(checkboxes).map(cb => {
+    const valor = cb.value
+    console.log('Checkbox encontrado:', valor, 'marcado:', cb.checked)
+    return valor
+  }).filter(v => v)  // Filtrar valores vacíos
+  
+  console.log('=== ENVIANDO FEEDBACK ===')
+  console.log('Restaurante seleccionado:', selectedRestaurantForFeedback?.nombre)
+  console.log('Razones seleccionadas:', razones)
+  console.log('Total de checkboxes marcados:', checkboxes.length)
+  console.log('Checkboxes encontrados:', Array.from(feedbackReasonsEl.querySelectorAll('input[type="checkbox"]')).map(cb => ({value: cb.value, checked: cb.checked})))
+  
+  if (razones.length === 0) {
+    if (feedbackStatusEl) {
+      feedbackStatusEl.innerHTML = '⚠️ Por favor, seleccioná al menos una razón.'
+      feedbackStatusEl.style.color = '#d32f2f'
+    }
+    return
+  }
+  
+  if (feedbackStatusEl) {
+    feedbackStatusEl.innerHTML = 'Enviando feedback...'
+    feedbackStatusEl.style.color = '#1976d2'
+  }
+  
+  try {
+    // Obtener contexto del formulario
+    const climaEl = document.getElementById('clima')
+    const franjaEl = document.getElementById('franja')
+    const contexto = {
+      clima: climaEl ? climaEl.value : 'templado',
+      dia: 'viernes',
+      franja: franjaEl ? franjaEl.value : 'cena'
+    }
+    
+    const feedbackData = {
+      usuario: currentUsuarioData || window.__usuarioData || {},
+      contexto: contexto,
+      restaurante_seleccionado: selectedRestaurantForFeedback,
+      restaurantes_rechazados: selectedRestaurantsRejected,
+      razones_preferencia: razones
+    }
+    
+    console.log('Datos a enviar:', JSON.stringify(feedbackData, null, 2))
+    
+    // Enviar feedback al backend
+    const response = await fetch('http://localhost:8000/api/feedback', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(feedbackData)
+    })
+    
+    if (response.ok) {
+      const result = await response.json()
+      console.log('Feedback enviado exitosamente:', result)
+      if (feedbackStatusEl) {
+        feedbackStatusEl.innerHTML = `✅ ¡Gracias! Tu feedback fue registrado. Total de feedbacks: ${result.total_feedbacks || 0}`
+        feedbackStatusEl.style.color = '#388e3c'
+      }
+      
+      // Ocultar sección de razones
+      if (feedbackReasonsEl) {
+        feedbackReasonsEl.style.display = 'none'
+      }
+      selectedRestaurantForFeedback = null
+      selectedRestaurantsRejected = []
+    } else {
+      const errorText = await response.text()
+      console.error('Error en respuesta:', response.status, errorText)
+      let errorData
+      try {
+        errorData = JSON.parse(errorText)
+      } catch {
+        errorData = { message: errorText }
+      }
+      throw new Error(errorData.message || 'Error en el servidor')
+    }
+  } catch (error) {
+    console.error('Error enviando feedback:', error)
+    if (feedbackStatusEl) {
+      feedbackStatusEl.innerHTML = `⚠️ Error al enviar feedback: ${error.message}. Por favor, intentá de nuevo.`
+      feedbackStatusEl.style.color = '#d32f2f'
+    }
+  }
 }
 
 function escapeHtml(s){
@@ -520,6 +833,9 @@ async function obtenerUbicacion() {
 
 // Asignar event listeners cuando el DOM esté listo
 function inicializarEventListeners() {
+  
+  // Configurar botones de feedback una vez al cargar
+  setupFeedbackButtonsOnce()
   
   const btnUbicacion = document.getElementById('btnUbicacionAuto')
   if (btnUbicacion) {

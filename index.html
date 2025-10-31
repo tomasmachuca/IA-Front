@@ -134,6 +134,25 @@
       <div class="row">
         <button class="primary" id="btnRecomendar">Obtener recomendación</button>
       </div>
+      <div style="margin-top: 14px; padding: 0;">
+        <label id="label-pesos-optimizados" style="display: inline-flex; align-items: flex-start; gap: 10px; cursor: pointer; user-select: none; padding: 10px; border-radius: 6px; transition: background-color 0.2s;">
+          <input type="checkbox" id="usar_pesos_optimizados" checked style="width: 18px; height: 18px; margin-top: 2px; cursor: pointer; accent-color: #1976d2; flex-shrink: 0;">
+          <div style="flex: 1; min-width: 0;">
+            <div style="font-size: 0.9em; font-weight: 500; color: #333; display: flex; align-items: center; gap: 6px; margin-bottom: 2px;">
+              <span style="font-size: 1.05em; line-height: 1;">🧠</span>
+              <span style="line-height: 1.4;">Usar pesos optimizados por IA</span>
+            </div>
+            <small style="display: block; color: #666; font-size: 0.83em; line-height: 1.4;">
+              Aprende de feedbacks anteriores para mejorar las recomendaciones
+            </small>
+          </div>
+        </label>
+      </div>
+      <style>
+        #label-pesos-optimizados:hover {
+          background-color: #f5f5f5;
+        }
+      </style>
     </section>
 
     <section id="resultado" class="card hidden">
@@ -144,6 +163,53 @@
       <div class="row">
         <button id="btnCopiar">Copiar explicación</button>
         <button id="btnDescargar">Descargar JSON</button>
+      </div>
+      <div id="feedback-section" style="margin-top: 20px; padding: 16px; background: #e3f2fd; border-radius: 8px; border: 2px solid #1976d2;">
+        <h3 style="margin-top: 0; color: #1976d2;">💬 ¿Cuál te gustó más?</h3>
+        <p style="color: #555; margin-bottom: 12px;">Seleccioná la recomendación que más te interesa para mejorar futuras sugerencias:</p>
+        <div id="feedback-buttons" style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px;"></div>
+        <div id="feedback-reasons" style="display: none; margin-top: 16px; padding: 12px; background: white; border-radius: 6px;">
+          <p style="margin-top: 0; margin-bottom: 10px; font-weight: bold; color: #1976d2;">¿Por qué elegiste esta opción? (podés seleccionar varias):</p>
+          <div id="reasons-checklist" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px;">
+            <label style="display: flex; align-items: center; cursor: pointer; padding: 6px;">
+              <input type="checkbox" name="razon" value="precio" style="margin-right: 8px;">
+              <span>💰 Precio más conveniente</span>
+            </label>
+            <label style="display: flex; align-items: center; cursor: pointer; padding: 6px;">
+              <input type="checkbox" name="razon" value="distancia" style="margin-right: 8px;">
+              <span>📍 Más cercano / Menor tiempo de viaje</span>
+            </label>
+            <label style="display: flex; align-items: center; cursor: pointer; padding: 6px;">
+              <input type="checkbox" name="razon" value="calidad" style="margin-right: 8px;">
+              <span>⭐ Mejor rating / Calidad</span>
+            </label>
+            <label style="display: flex; align-items: center; cursor: pointer; padding: 6px;">
+              <input type="checkbox" name="razon" value="gustos" style="margin-right: 8px;">
+              <span>🍽️ Coincide mejor con mis gustos culinarios</span>
+            </label>
+            <label style="display: flex; align-items: center; cursor: pointer; padding: 6px;">
+              <input type="checkbox" name="razon" value="abierto" style="margin-right: 8px;">
+              <span>🕐 Está abierto ahora</span>
+            </label>
+            <label style="display: flex; align-items: center; cursor: pointer; padding: 6px;">
+              <input type="checkbox" name="razon" value="reserva" style="margin-right: 8px;">
+              <span>📋 No requiere reserva / Requiere reserva</span>
+            </label>
+            <label style="display: flex; align-items: center; cursor: pointer; padding: 6px;">
+              <input type="checkbox" name="razon" value="caracteristicas" style="margin-right: 8px;">
+              <span>✅ Tiene características que busco (pet friendly, estacionamiento, etc.)</span>
+            </label>
+            <label style="display: flex; align-items: center; cursor: pointer; padding: 6px;">
+              <input type="checkbox" name="razon" value="otro" style="margin-right: 8px;">
+              <span>💭 Otra razón</span>
+            </label>
+          </div>
+          <div style="margin-top: 12px; display: flex; gap: 8px;">
+            <button type="button" id="btnEnviarFeedback" class="primary" style="padding: 8px 16px;">Enviar feedback</button>
+            <button type="button" id="btnCancelarFeedback" style="padding: 8px 16px;">Cancelar</button>
+          </div>
+        </div>
+        <div id="feedback-status" style="margin-top: 12px; font-size: 0.9em;"></div>
       </div>
     </section>
   </main>
