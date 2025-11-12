@@ -881,3 +881,99 @@ if (document.readyState === 'loading') {
 } else {
   inicializarEventListeners()
 }
+
+// ==================== NAVBAR FUNCTIONALITY ====================
+function initNavbar() {
+  const navToggle = document.getElementById('navToggle')
+  const navMenu = document.getElementById('navMenu')
+  const navLinks = document.querySelectorAll('.nav-link')
+
+  if (navToggle && navMenu) {
+    navToggle.addEventListener('click', () => {
+      navMenu.classList.toggle('active')
+      navToggle.classList.toggle('active')
+    })
+
+    // Close menu when clicking on a link
+    navLinks.forEach(link => {
+      link.addEventListener('click', () => {
+        navMenu.classList.remove('active')
+        navToggle.classList.remove('active')
+      })
+    })
+
+    // Close menu when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!navToggle.contains(e.target) && !navMenu.contains(e.target)) {
+        navMenu.classList.remove('active')
+        navToggle.classList.remove('active')
+      }
+    })
+  }
+
+  // Navbar scroll effect
+  const navbar = document.querySelector('.navbar')
+  if (navbar) {
+    window.addEventListener('scroll', () => {
+      const currentScroll = window.pageYOffset
+      
+      if (currentScroll > 100) {
+        navbar.classList.add('scrolled')
+      } else {
+        navbar.classList.remove('scrolled')
+      }
+    })
+  }
+
+  // Smooth scroll for anchor links
+  navLinks.forEach(link => {
+    link.addEventListener('click', (e) => {
+      const href = link.getAttribute('href')
+      if (href && href.startsWith('#')) {
+        e.preventDefault()
+        const targetId = href.substring(1)
+        const targetElement = document.getElementById(targetId)
+        if (targetElement) {
+          const offsetTop = targetElement.offsetTop - 80
+          window.scrollTo({
+            top: offsetTop,
+            behavior: 'smooth'
+          })
+        }
+      }
+    })
+  })
+
+  // Set active nav link based on scroll position
+  function updateActiveNavLink() {
+    const scrollPos = window.scrollY + 100
+
+    navLinks.forEach(link => {
+      const href = link.getAttribute('href')
+      if (href && href.startsWith('#')) {
+        const targetId = href.substring(1)
+        const targetElement = document.getElementById(targetId)
+        
+        if (targetElement) {
+          const offsetTop = targetElement.offsetTop
+          const offsetBottom = offsetTop + targetElement.offsetHeight
+
+          if (scrollPos >= offsetTop && scrollPos < offsetBottom) {
+            navLinks.forEach(l => l.classList.remove('active'))
+            link.classList.add('active')
+          }
+        }
+      }
+    })
+  }
+
+  window.addEventListener('scroll', updateActiveNavLink)
+  updateActiveNavLink() // Initial check
+}
+
+// Initialize navbar when DOM is ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initNavbar)
+} else {
+  initNavbar()
+}

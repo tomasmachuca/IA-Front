@@ -3,221 +3,43 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Recomendador de Restaurantes</title>
-  <link rel="stylesheet" href="style.css"/>
-</head>
-<body>
-  <header>
-    <h1>🍽️ Recomendador de Restaurantes</h1>
-    <p>Completá tus preferencias y te sugerimos el mejor lugar.</p>
-  </header>
-
-  <main>
-    <section class="card">
-      <h2>Tus preferencias</h2>
-      <div class="grid">
-        <label>Presupuesto por persona (ARS)
-          <input id="presupuesto" type="number" min="0" step="1">
-        </label>
-        <label>Tiempo máximo hasta el lugar (min)
-          <input id="tmax" type="number" min="1" step="1">
-        </label>
-        <label>Gustos (separados por espacio)
-          <input id="gustos" type="text" placeholder="ej: italiana pizza">
-        </label>
-        <label>Restricciones alimentarias
-          <input id="restricciones" type="text" placeholder="ej: sin_tacc vegano vegetariano celiaco intolerancia_lactosa kosher fit">
-          <small style="display: block; margin-top: 4px; color: #666; font-size: 0.85em;">Opciones: sin_tacc, vegano, vegetariano, celiaco, intolerancia_lactosa, kosher, fit</small>
-        </label>
-        <label>🚗 Movilidad
-          <select id="movilidad">
-            <option value="a_pie" selected>A pie</option>
-            <option value="auto">Auto</option>
-            <option value="moto">Moto</option>
-            <option value="bicicleta">Bicicleta</option>
-            <option value="transporte_publico">Transporte público</option>
-          </select>
-        </label>
-        <label>♿ Movilidad reducida
-          <select id="movilidad_reducida">
-            <option value="">No especificar</option>
-            <option value="si">Sí</option>
-            <option value="no">No</option>
-          </select>
-        </label>
-        <label>⭐ Rating mínimo
-          <input id="rating_minimo" type="number" min="0" max="5" step="0.1" placeholder="0.0">
-          <small style="display: block; margin-top: 4px; color: #666; font-size: 0.85em;">Mínimo de estrellas requerido (0-5)</small>
-        </label>
-        <label>🐕 Pet friendly (quiero llevar mi mascota)
-          <select id="pet_friendly_usuario">
-            <option value="">No aplica</option>
-            <option value="si">Sí</option>
-            <option value="no">No</option>
-          </select>
-        </label>
-        <label>📋 Requiere reserva
-          <select id="requiere_reserva">
-            <option value="">No especificar</option>
-            <option value="si">Sí (solo restaurantes con reserva)</option>
-            <option value="no">No (solo restaurantes sin reserva)</option>
-          </select>
-        </label>
-        <label>🕐 Solo abiertos ahora
-          <select id="solo_abiertos">
-            <option value="">No especificar</option>
-            <option value="si">Sí (solo restaurantes abiertos)</option>
-            <option value="no">No (mostrar todos)</option>
-          </select>
-        </label>
-        <label>⏱ Tiempo máximo de espera (min)
-          <input id="tiempo_espera_max" type="number" min="0" step="1" placeholder="ej: 20">
-          <small style="display: block; margin-top: 4px; color: #666; font-size: 0.85em;">Tiempo máximo de espera aceptable</small>
-        </label>
-        <label>🍽️ Tipo de comida
-          <select id="tipo_comida">
-            <option value="">No especificar</option>
-            <option value="comida_rapida">Comida rápida</option>
-            <option value="gourmet">Gourmet</option>
-            <option value="fine_dining">Fine Dining</option>
-            <option value="casual">Casual</option>
-            <option value="bar">Bar</option>
-            <option value="cafeteria">Cafetería</option>
-          </select>
-        </label>
-        <label>🅿️ Estacionamiento propio requerido
-          <select id="estacionamiento_requerido">
-            <option value="">No especificar</option>
-            <option value="si">Sí (solo con estacionamiento)</option>
-            <option value="no">No (sin estacionamiento)</option>
-          </select>
-        </label>
-        <label class="full-width">📍 Dirección (opcional)
-          <div style="display: flex; gap: 8px; margin-top: 4px;">
-            <input id="direccion" type="text" placeholder="ej: Av. Corrientes 1234, CABA" style="flex: 1;">
-            <button type="button" id="btnUbicacionAuto" style="padding: 8px 16px; white-space: nowrap;">📍 Usar mi ubicación</button>
-          </div>
-          <small id="statusUbicacion" style="display: block; margin-top: 4px; color: #666; font-size: 0.85em;"></small>
-          <input type="hidden" id="latitud">
-          <input type="hidden" id="longitud">
-        </label>
-      </div>
-
-    </section>
-
-    <section class="card">
-      <h2>Contexto</h2>
-      <div class="grid">
-        <label>Clima
-          <select id="clima">
-            <option value="" selected disabled hidden>Selecciona una opción</option>
-            <option value="templado">templado</option>
-            <option value="lluvia">lluvia</option>
-            <option value="frio">frio</option>
-            <option value="calor">calor</option>
-          </select>
-        </label>
-        <label>Franja
-          <select id="franja">
-            <option value="" selected disabled hidden>Selecciona una opción</option>
-            <option>cena</option>
-            <option>almuerzo</option>
-            <option>desayuno</option>
-            <option>merienda</option>
-            <option>madrugada</option>
-          </select>
-        </label>
-      </div>
-    </section>
-
-    <section class="card">
-      <div class="row">
-        <button class="primary" id="btnRecomendar">Obtener recomendación</button>
-      </div>
-      <div style="margin-top: 14px; padding: 0;">
-        <label id="label-pesos-optimizados" style="display: inline-flex; align-items: flex-start; gap: 10px; cursor: pointer; user-select: none; padding: 10px; border-radius: 6px; transition: background-color 0.2s;">
-          <input type="checkbox" id="usar_pesos_optimizados" checked style="width: 18px; height: 18px; margin-top: 2px; cursor: pointer; accent-color: #1976d2; flex-shrink: 0;">
-          <div style="flex: 1; min-width: 0;">
-            <div style="font-size: 0.9em; font-weight: 500; color: #333; display: flex; align-items: center; gap: 6px; margin-bottom: 2px;">
-              <span style="font-size: 1.05em; line-height: 1;">🧠</span>
-              <span style="line-height: 1.4;">Usar pesos optimizados por IA</span>
-            </div>
-            <small style="display: block; color: #666; font-size: 0.83em; line-height: 1.4;">
-              Aprende de feedbacks anteriores para mejorar las recomendaciones
-            </small>
-          </div>
-        </label>
-      </div>
-      <style>
-        #label-pesos-optimizados:hover {
-          background-color: #f5f5f5;
+  <title>RestoFinder - Recomendador de Restaurantes</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            'poppins': ['Poppins', 'sans-serif'],
+          },
+          animation: {
+            'float': 'float 3s ease-in-out infinite',
+            'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            'gradient': 'gradient 15s ease infinite',
+          },
+          keyframes: {
+            float: {
+              '0%, 100%': { transform: 'translateY(0px)' },
+              '50%': { transform: 'translateY(-10px)' },
+            },
+            gradient: {
+              '0%, 100%': { backgroundPosition: '0% 50%' },
+              '50%': { backgroundPosition: '100% 50%' },
+            }
+          }
         }
-      </style>
-    </section>
-
-    <section id="resultado" class="card hidden">
-      <h2>Resultado</h2>
-      <div id="top"></div>
-      <h3>Alternativas</h3>
-      <div id="lista"></div>
-      <div class="row">
-        <button id="btnCopiar">Copiar explicación</button>
-        <button id="btnDescargar">Descargar JSON</button>
-      </div>
-      <div id="feedback-section" style="margin-top: 20px; padding: 16px; background: #e3f2fd; border-radius: 8px; border: 2px solid #1976d2;">
-        <h3 style="margin-top: 0; color: #1976d2;">💬 ¿Cuál te gustó más?</h3>
-        <p style="color: #555; margin-bottom: 12px;">Seleccioná la recomendación que más te interesa para mejorar futuras sugerencias:</p>
-        <div id="feedback-buttons" style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px;"></div>
-        <div id="feedback-reasons" style="display: none; margin-top: 16px; padding: 12px; background: white; border-radius: 6px;">
-          <p style="margin-top: 0; margin-bottom: 10px; font-weight: bold; color: #1976d2;">¿Por qué elegiste esta opción? (podés seleccionar varias):</p>
-          <div id="reasons-checklist" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px;">
-            <label style="display: flex; align-items: center; cursor: pointer; padding: 6px;">
-              <input type="checkbox" name="razon" value="precio" style="margin-right: 8px;">
-              <span>💰 Precio más conveniente</span>
-            </label>
-            <label style="display: flex; align-items: center; cursor: pointer; padding: 6px;">
-              <input type="checkbox" name="razon" value="distancia" style="margin-right: 8px;">
-              <span>📍 Más cercano / Menor tiempo de viaje</span>
-            </label>
-            <label style="display: flex; align-items: center; cursor: pointer; padding: 6px;">
-              <input type="checkbox" name="razon" value="calidad" style="margin-right: 8px;">
-              <span>⭐ Mejor rating / Calidad</span>
-            </label>
-            <label style="display: flex; align-items: center; cursor: pointer; padding: 6px;">
-              <input type="checkbox" name="razon" value="gustos" style="margin-right: 8px;">
-              <span>🍽️ Coincide mejor con mis gustos culinarios</span>
-            </label>
-            <label style="display: flex; align-items: center; cursor: pointer; padding: 6px;">
-              <input type="checkbox" name="razon" value="abierto" style="margin-right: 8px;">
-              <span>🕐 Está abierto ahora</span>
-            </label>
-            <label style="display: flex; align-items: center; cursor: pointer; padding: 6px;">
-              <input type="checkbox" name="razon" value="reserva" style="margin-right: 8px;">
-              <span>📋 No requiere reserva / Requiere reserva</span>
-            </label>
-            <label style="display: flex; align-items: center; cursor: pointer; padding: 6px;">
-              <input type="checkbox" name="razon" value="caracteristicas" style="margin-right: 8px;">
-              <span>✅ Tiene características que busco (pet friendly, estacionamiento, etc.)</span>
-            </label>
-            <label style="display: flex; align-items: center; cursor: pointer; padding: 6px;">
-              <input type="checkbox" name="razon" value="otro" style="margin-right: 8px;">
-              <span>💭 Otra razón</span>
-            </label>
-          </div>
-          <div style="margin-top: 12px; display: flex; gap: 8px;">
-            <button type="button" id="btnEnviarFeedback" class="primary" style="padding: 8px 16px;">Enviar feedback</button>
-            <button type="button" id="btnCancelarFeedback" style="padding: 8px 16px;">Cancelar</button>
-          </div>
-        </div>
-        <div id="feedback-status" style="margin-top: 12px; font-size: 0.9em;"></div>
-      </div>
-    </section>
-  </main>
-
-  <footer>
-    <small>Demo académico — Sistema Experto en CLIPS</small>
-  </footer>
-
-  <script src="app.js"></script>
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'Poppins', sans-serif; }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-slate-50 via-indigo-50 to-purple-50 min-h-screen">
+  <div id="app"></div>
+  <script type="module" src="main.js"></script>
 </body>
 </html>
